@@ -1,0 +1,27 @@
+name: Sync from upstream
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # todos los días a las 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - run: |
+          git remote add upstream https://github.com/Juanignacioz/Frontend-Uberto-2025.git || true
+          git fetch upstream --prune --tags
+
+      - run: |
+          for b in $(git branch -r --format='%(refname:short)' | grep '^upstream/' | sed 's#^upstream/##'); do
+            git branch -f "$b" "upstream/$b"
+          done
+          git push --mirror origin
